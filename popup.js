@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const sunPath = themeToggle.querySelector('.sun');
     const moonPath = themeToggle.querySelector('.moon');
 
-    // Load saved theme
-    chrome.storage.local.get(['darkMode', 'lastDorks'], (result) => {
+    // Load saved theme and last query
+    chrome.storage.local.get(['darkMode', 'lastDorks', 'lastQuery'], (result) => {
         if (result.darkMode) {
             body.classList.add('dark');
             sunPath.classList.remove('hidden');
@@ -20,6 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 addDorkToList(dork);
             });
             updateFinalQuery();
+        }
+
+        // Restore last query if exists
+        if (result.lastQuery) {
+            finalQuery.value = result.lastQuery;
+            finalQuery.innerHTML = result.lastQuery;
         }
     });
 
@@ -38,6 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const dorkValue = document.getElementById('dorkValue');
     const finalQuery = document.getElementById('finalQuery');
     const dorkOperator = document.getElementById('dorkOperator');
+
+    // Save query when it changes
+    finalQuery.addEventListener('input', () => {
+        chrome.storage.local.set({ lastQuery: finalQuery.value });
+    });
 
     function getDorkColorClass(operator) {
         const colorMap = {
@@ -85,8 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Set the HTML content and plain text value
         finalQuery.innerHTML = coloredDorks.join(' ');
         finalQuery.value = activeDorks.join(' ');
-        // Save current dorks to storage
-        chrome.storage.local.set({ lastDorks: activeDorks });
+        // Save current dorks and query to storage
+        chrome.storage.local.set({ 
+            lastDorks: activeDorks,
+            lastQuery: finalQuery.value
+        });
     }
 
     function addDorkToList(dork) {
